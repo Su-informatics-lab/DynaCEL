@@ -1,5 +1,10 @@
 data/**
+results/**
+logs/**
+log/**
+scripts/mimic-iv/sh/**
 !data/.gitkeep
+!results/.github
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
