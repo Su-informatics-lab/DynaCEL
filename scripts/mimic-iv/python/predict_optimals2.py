@@ -103,9 +103,9 @@ batch_size = args.batch_size
 PW = 12
 MOP = 18
 OW = 24
-data_dir = "data/data_for_training/mimic-iv/datasets/PW_12__MOP_18__OW_24/"
+data_dir = f"data/data_for_training/mimic-iv/datasets/PW_{PW}__MOP_{MOP}__OW_{OW}"
 model_dir = f"results/eicu/models"
-output_dir = f"results/mimic-iv/predicted_optimals/"
+output_dir = f"results/mimic-iv/predicted_optimals/batched_predicted_optimals"
 os.makedirs(output_dir, exist_ok=True)
 model_name = "XGBoost"
 events = pd.read_csv(os.path.join(data_dir, "merged_events.csv"))
@@ -153,7 +153,8 @@ for model_i, model in enumerate(models):
 
 batched_cross_events = get_avg_ci(batched_cross_events)
 
-final_result_df = pd.DataFrame()
+
+optimal_hrs_bps = []
 for case_id in list(batched_cross_events["stay_id"].unique()):
     events_of_interest = events.loc[events["stay_id"] == case_id, :]
     hr = events_of_interest["m1_valuenum"].item()
@@ -161,52 +162,41 @@ for case_id in list(batched_cross_events["stay_id"].unique()):
 
     case_df = batched_cross_events[batched_cross_events["stay_id"] == case_id]
     average_x, average_y = get_average_target_point(case_df, 100)
-
-    actual_risk = optimal_risk = 0
-    # for model_i, model in enumerate(models):
-    model = models[-1]
-    actual_data = events[events["stay_id"] == case_id]
-    Y = model.predict_proba(cp.array(actual_data[feature_names]))
-    actual_risk = Y[:, 1].item()
-
-    optimal_data = events[events["stay_id"] == case_id].copy(True)
-    optimal_data.loc[:, "m1_valuenum"] = average_x
-    optimal_data.loc[:, "m2_valuenum"] = average_y
-    Y = model.predict_proba(cp.array(optimal_data[feature_names]))
-    optimal_risk = Y[:, 1].item()
-
-    # Create a DataFrame to store the results
-    result_df = pd.DataFrame(
-        {
-            "case_id": [case_id],
-            "hr": [hr],
-            "bp": [bp],
-            "optimal_hr": [average_x],
-            "optimal_bp": [average_y],
-            "actual_risk": [actual_risk],
-            "optimal_risk": [optimal_risk],
-        }
+    optimal_hrs_bps.append(
+        {"case_id": case_id, "optimal_hr": average_x, "optimal_bp": average_y}
     )
 
-    # Append result_df to final_result_df
-    final_result_df = pd.concat([final_result_df, result_df], ignore_index=True)
+optimal_hrs_bps = pd.DataFrame(optimal_hrs_bps)
+events = pd.merge(events, optimal_hrs_bps, left_on="stay_id", right_on="case_id")
+
+model = models[-1]
+actual_risks = model.predict_proba(cp.array(events[feature_names]))
+events["actual_risk"] = actual_risks[:, 1]
 
 
-final_result_df = final_result_df.merge(
-    events[["stay_id", "mortality"]],
-    left_on="case_id",
-    right_on="stay_id",
-    how="left",
-)
+feature_names[0], feature_names[1] = "optimal_hr", "optimal_bp"
+optimal_risks = model.predict_proba(cp.array(events[feature_names]))
+events["optimal_risk"] = optimal_risks[:, 1]
 
-# Drop the stay_id column after merge if not needed
-final_result_df.drop(columns=["stay_id"], inplace=True)
+events = events.rename(columns={"m1_valuenum": "hr", "m2_valuenum": "bp"})
+events = events[
+    [
+        "case_id",
+        "hr",
+        "bp",
+        "optimal_hr",
+        "optimal_bp",
+        "actual_risk",
+        "optimal_risk",
+        "mortality",
+    ]
+]
 
 
 output_path = os.path.join(
     output_dir, f"predicted_optimals_batch_{batch_idx}_batch_size_{batch_size}.csv"
 )
-final_result_df.to_csv(output_path, index=False)
+events.to_csv(output_path, index=False)
 
 # End the timer
 end_time = time.time()

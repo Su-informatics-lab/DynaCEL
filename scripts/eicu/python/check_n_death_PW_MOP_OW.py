@@ -1,8 +1,17 @@
 import os
+import pickle
 import random
+from statistics import median
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import seaborn as sns
+from imblearn.over_sampling import SMOTE
+from sklearn import metrics, svm
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import NearestNeighbors
 
 random.seed(137)
 np.random.seed(137)
@@ -48,7 +57,6 @@ feature_names = [
     "sofa_total",
     "mv_invasive",
     "mv_non_vasive",
-    "mv_unknown",
     "mv_oxygen_therapy",
     "mv_unknown",
     "mv_none",
@@ -61,31 +69,26 @@ feature_names = [
 
 def read_events(filepath):
     events = pd.read_csv(filepath)
-    events["charttime"] = pd.to_datetime(events["charttime"], errors="coerce")
-    events["deathtime"] = pd.to_datetime(events["deathtime"], errors="coerce")
-    events["intime"] = pd.to_datetime(events["intime"], errors="coerce")
-    events["outtime"] = pd.to_datetime(events["outtime"], errors="coerce")
-    events["time_diff"] = pd.to_timedelta(events["time_diff"], errors="coerce")
     return events
 
 
 def merge_measurements(measurement_1, measurement_2, start_time, end_time):
     m1_clean = measurement_1[
-        (measurement_1["time_diff"] >= start_time)
-        & (measurement_1["time_diff"] < end_time)
+        (measurement_1["nursingchartoffset"] >= start_time)
+        & (measurement_1["nursingchartoffset"] < end_time)
     ]
     m2_clean = measurement_2[
-        (measurement_2["time_diff"] >= start_time)
-        & (measurement_2["time_diff"] < end_time)
+        (measurement_2["nursingchartoffset"] >= start_time)
+        & (measurement_2["nursingchartoffset"] < end_time)
     ]
-    m1_clean.rename(columns={"valuenum": "m1_valuenum"}, inplace=True)
-    m2_clean = m2_clean[["stay_id", "valuenum"]]
-    m2_clean.rename(columns={"valuenum": "m2_valuenum"}, inplace=True)
-    return pd.merge(m1_clean, m2_clean, on="stay_id")
+    m1_clean.rename(columns={"nursingchartvalue": "m1_valuenum"}, inplace=True)
+    m2_clean = m2_clean[["patientunitstayid", "nursingchartvalue"]]
+    m2_clean.rename(columns={"nursingchartvalue": "m2_valuenum"}, inplace=True)
+    return pd.merge(m1_clean, m2_clean, on="patientunitstayid")
 
 
 def get_median_of_measurements(measurements):
-    medians_data = measurements.groupby("stay_id").agg(
+    medians_data = measurements.groupby("patientunitstayid").agg(
         {
             "m1_valuenum": "median",
             "m2_valuenum": "median",
@@ -138,28 +141,38 @@ def get_median_of_measurements(measurements):
 
 
 prediction_window = 12
-time = 12
+time = 30
 outcome_window = 24
-data_dir = "data/data_for_training/mimic-iv"
-dst_dir = "data/data_for_visualization/mimic-iv"
+data_dir = "data/data_for_training/eicu"
+dst_dir = f"data/data_for_visualization/eicu"
 os.makedirs(dst_dir, exist_ok=True)
 
 hr_events = read_events(os.path.join(data_dir, "merged_hr_events.csv"))
-
+print(hr_events.columns)
+hr_events = hr_events[
+    ["patientunitstayid", "hospitaldischargeoffset", "hospitaldischargestatus"]
+]
+print(hr_events["hospitaldischargeoffset"].isna().sum())
+assert False
 hr_events = hr_events.iloc[:, 1:]
 sbp_events = read_events(os.path.join(data_dir, "merged_sbp_events.csv"))
 sbp_events = sbp_events.iloc[:, 1:]
 
 
 print(prediction_window, time, outcome_window)
-end_time = pd.to_timedelta(time, unit="h")
-start_time = end_time - pd.to_timedelta(prediction_window, unit="h")
+end_time = time * 60
+start_time = end_time - prediction_window * 60
 
 merged_measurements = merge_measurements(hr_events, sbp_events, start_time, end_time)
 print(merged_measurements.head())
 measurements_median = get_median_of_measurements(merged_measurements)
 print(measurements_median.head())
 
+measurements_median = measurements_median.rename(
+    columns={"patientunitstayid": "stay_id"}
+)
+# measurements_median.loc[measurements_median["age"].isna(), "age"] = 64
+print(measurements_median["age"].isna().sum())
 measurements_median.to_csv(
     os.path.join(
         dst_dir,
