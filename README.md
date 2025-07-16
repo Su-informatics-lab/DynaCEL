@@ -1,5 +1,5 @@
 ## DynaCEL: Dynamic Cohort Ensemble Learning for Personalized and Real-Time Hemodynamic Management in Critical Care
-Lingzhong Meng<sup>1</sup>, Jiangqiong Li<sup>2</sup>, Xiang Liu<sup>2</sup>, Yanhua Sun<sup>1,3</sup>, Zuotian Li<sup>2,4</sup>, Ameya D. Parab<sup>5</sup>, George Lu<sup>2</sup>, Aishwarya S. Budhkar<sup>5</sup>, Saravanan Kanakasabai<sup>6</sup>, David C. Adams<sup>1</sup>, Ziyue Liu<sup>2</sup>, Xuhong Zhang<sup>5</sup>, Jing Su<sup>2*</sup>
+Lingzhong Meng<sup>1</sup>, Jiangqiong Li<sup>2</sup>, Xiang Liu<sup>2</sup>, Yanhua Sun<sup>1,3</sup>, Zuotian Li<sup>2,4</sup>, Jinjin Cai<sup>2,5</sup>, Ameya D. Parab<sup>6</sup>, George Lu<sup>2</sup>, Aishwarya S. Budhkar<sup>6</sup>, Saravanan Kanakasabai<sup>7</sup>, David C. Adams<sup>1</sup>, Ziyue Liu<sup>2</sup>, Xuhong Zhang<sup>6</sup>, Jing Su<sup>2*</sup>
 
 **Author affiliations:**
 
@@ -11,7 +11,9 @@ Lingzhong Meng<sup>1</sup>, Jiangqiong Li<sup>2</sup>, Xiang Liu<sup>2</sup>, Ya
 
 <sup>4</sup>Department of Computer Graphic Technology, Polytechnic Institute, Purdue University, West Lafayette, Indiana, USA
 
-<sup>5</sup>Department of Computer Science, Luddy School of Informatics, Computing, and Engineering, Indiana University Bloomington, Bloomington, Indiana, USA
+<sup>5</sup>Department of Computer and Information Technology, Polytechnic Institute, Purdue University, West Lafayette, Indiana, USA
+
+<sup>6</sup>Department of Computer Science, Luddy School of Informatics, Computing, and Engineering, Indiana University Bloomington, Bloomington, Indiana, USA
 
 <sup>6</sup>Clinical Research Systems, Enterprise Analytics, Indiana University Health, Indianapolis, Indiana, USA
 
