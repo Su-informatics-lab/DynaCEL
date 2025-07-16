@@ -15,7 +15,7 @@ Lingzhong Meng<sup>1</sup>, Jiangqiong Li<sup>2</sup>, Xiang Liu<sup>2</sup>, Ya
 
 <sup>6</sup>Department of Computer Science, Luddy School of Informatics, Computing, and Engineering, Indiana University Bloomington, Bloomington, Indiana, USA
 
-<sup>6</sup>Clinical Research Systems, Enterprise Analytics, Indiana University Health, Indianapolis, Indiana, USA
+<sup>7</sup>Clinical Research Systems, Enterprise Analytics, Indiana University Health, Indianapolis, Indiana, USA
 
 <sup>*</sup>Corresponding Author: Jing Su, Department of Biostatistics and Health Data Science, Indiana University School of Medicine, Indianapolis, USA. Email: su1@iu.edu 
 
